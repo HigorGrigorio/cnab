@@ -183,3 +183,51 @@ func TestCustomInterface(t *testing.T) {
 		t.Errorf("Expected 'N', got '%s'", string(data))
 	}
 }
+
+func TestStartEndEncodingDecoding(t *testing.T) {
+	type Pos struct {
+		// Explicit start/end interval
+		Code string `cnab:"start:1;end:3;fill:0;align:right"`
+		// Start+size interval
+		Name string `cnab:"start:4;size:4;fill: ;align:left"`
+		// Sequential (no start): follows previous end
+		Cnt  int    `cnab:"size:2;fill:0;align:right"`
+	}
+
+	p := Pos{
+		Code: "12",
+		Name: "AB",
+		Cnt:  5,
+	}
+
+	data, err := Marshal(p)
+	if err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+
+	expected := "012AB  05"
+	if string(data) != expected {
+		t.Fatalf("expected '%s', got '%s'", expected, string(data))
+	}
+
+	var out Pos
+	if err := Unmarshal(data, &out); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	if out.Code != "12" || out.Name != "AB" || out.Cnt != 5 {
+		t.Fatalf("unexpected decode result: %+v", out)
+	}
+}
+
+func TestStartEndOverlap(t *testing.T) {
+	type Bad struct {
+		A string `cnab:"start:1;end:3"`
+		B string `cnab:"start:3;size:2"` // overlaps at position 3
+	}
+	b := Bad{A: "AAA", B: "BB"}
+	_, err := Marshal(b)
+	if err == nil {
+		t.Fatalf("expected overlap error, got nil")
+	}
+}

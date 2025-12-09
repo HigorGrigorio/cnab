@@ -37,21 +37,25 @@ func decode(data []byte, v interface{}) error {
 			return fmt.Errorf("field %s: %w", field.Name, err)
 		}
 
-		// Determine start and end positions
-		start := currentPos
-		if tag.start > 0 {
-			start = tag.start - 1 // 1-based to 0-based
+		// Determine start and end positions (1-based in tags)
+		start := tag.start
+		if start == 0 {
+			start = currentPos + 1
 		}
-
-		end := start + tag.size
+		end := start + tag.size - 1
+		if tag.end > 0 {
+			end = tag.end
+		}
 
 		if end > len(line) {
 			return ErrLineTooShort
 		}
 
-		valStr := line[start:end]
+		valStr := line[start-1 : end]
 		// Update currentPos for next field if using sequential
-		currentPos = end
+		if end > currentPos {
+			currentPos = end
+		}
 
 		err = setFieldValue(rv.Field(i), valStr, tag)
 		if err != nil {

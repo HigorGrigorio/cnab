@@ -7,6 +7,7 @@ import (
 
 type fieldTag struct {
 	start   int
+	end     int
 	size    int
 	fill    rune
 	align   string // "left" or "right"
@@ -43,6 +44,12 @@ func parseTag(tag string) (fieldTag, error) {
 				return ft, ErrInvalidTag
 			}
 			ft.size = v
+		case "end":
+			v, err := strconv.Atoi(value)
+			if err != nil {
+				return ft, ErrInvalidTag
+			}
+			ft.end = v
 		case "fill":
 			if len(value) == 0 {
 				ft.fill = ' '
@@ -79,8 +86,19 @@ func parseTag(tag string) (fieldTag, error) {
 		}
 	}
 
-	if ft.size == 0 {
-		return ft, ErrInvalidTag // Size is mandatory
+	// Derive size if end provided
+	if ft.end > 0 {
+		if ft.start == 0 {
+			return ft, ErrInvalidTag // end requires start
+		}
+		if ft.end < ft.start {
+			return ft, ErrInvalidTag // invalid interval
+		}
+		ft.size = ft.end - ft.start + 1
+	}
+
+	if ft.size <= 0 {
+		return ft, ErrInvalidTag // Size is mandatory (either explicit or derived)
 	}
 
 	return ft, nil
