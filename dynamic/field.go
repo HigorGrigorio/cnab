@@ -1,5 +1,6 @@
 package dynamic
 
+// Field describes a CNAB field definition used for dynamic layouts.
 type Field struct {
 	Name     string `json:"name"`
 	Size     int    `json:"size"`
@@ -16,4 +17,5 @@ type Field struct {
 	Decimal int    `json:"decimal,omitempty"` // Decimal places for float/int
 }
 
+// Fields represents a collection of CNAB field definitions.
 type Fields []Field

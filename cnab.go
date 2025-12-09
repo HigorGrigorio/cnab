@@ -23,24 +23,28 @@ func Unmarshal(data []byte, v interface{}) error {
 	return NewDecoder().Decode(data, v)
 }
 
+// Encoder provides CNAB encoding for struct values using field tags.
 type Encoder struct{}
 
+// NewEncoder creates a new CNAB encoder with default settings.
 func NewEncoder() *Encoder {
 	return &Encoder{}
 }
 
+// Encode marshals the provided value into CNAB-formatted bytes.
 func (e *Encoder) Encode(v interface{}) ([]byte, error) {
-	// Implementation to be added in encode.go
 	return encode(v)
 }
 
+// Decoder provides CNAB decoding for tagged struct values.
 type Decoder struct{}
 
+// NewDecoder creates a new CNAB decoder with default settings.
 func NewDecoder() *Decoder {
 	return &Decoder{}
 }
 
+// Decode parses CNAB-formatted data into the provided destination value.
 func (d *Decoder) Decode(data []byte, v interface{}) error {
-	// Implementation to be added in decode.go
 	return decode(data, v)
 }
