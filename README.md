@@ -109,3 +109,17 @@ type MyStruct struct {
     Flag BoolFlag `cnab:"size:1"`
 }
 ```
+
+## Supported Tags (struct)
+
+| Tag     | Description                                                | Default                                 | Notes / Rules                                                                                |
+|---------|------------------------------------------------------------|-----------------------------------------|----------------------------------------------------------------------------------------------|
+| `size`  | Field length in characters. Required unless `end` is set. | –                                       | If `end` is provided, `size` is derived as `end - start + 1`.                                |
+| `start` | 1-based start position. If omitted, continues sequentially.| –                                       | Used with `size` or `end` to define the interval.                                            |
+| `end`   | 1-based end position.                                      | –                                       | When present, it takes precedence over `size` (interval = `start..end`).                     |
+| `fill`  | Padding character.                                         | `' '` for strings; `'0'` for numbers    | Applied to reach `size`.                                                                    |
+| `align` | Padding direction (`left` or `right`).                     | `left` for strings; `right` for numbers | Works with `fill` to place the value within the field.                                       |
+| `format`| Date format for `time.Time` fields.                        | `20060102`                              | Go time layout.                                                                              |
+| `decimal`| Implied decimal places for numeric fields.                | 0                                       | Value is multiplied/divided by `10^decimal` on marshal/unmarshal.                            |
+
+Positioning rules: if `start` is omitted, the field begins right after the previous one. Overlapping intervals cause an encode error. Negative numbers keep the sign on the left with zero-fill (e.g., `-1` in size 5 becomes `-0001`).
