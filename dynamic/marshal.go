@@ -71,7 +71,7 @@ func formatValue(v interface{}, f Field) (string, error) {
 
 	switch val := v.(type) {
 	case string:
-		return val, nil
+		return formatStringValue(val, f)
 	case int, int8, int16, int32, int64:
 		return fmt.Sprintf("%d", val), nil
 	case uint, uint8, uint16, uint32, uint64:
@@ -101,4 +101,53 @@ func formatValue(v interface{}, f Field) (string, error) {
 	}
 
 	return fmt.Sprintf("%v", v), nil
+}
+
+// formatStringValue coerces string values according to the declared field type,
+// returning descriptive errors when conversion is not possible.
+func formatStringValue(s string, f Field) (string, error) {
+	trimmed := strings.TrimSpace(s)
+
+	switch f.Type {
+	case "int":
+		if trimmed == "" {
+			return "", nil
+		}
+		val, err := strconv.ParseInt(trimmed, 10, 64)
+		if err != nil {
+			return "", fmt.Errorf("cannot convert string '%s' to int: %w", s, err)
+		}
+		return fmt.Sprintf("%d", val), nil
+
+	case "float":
+		if trimmed == "" {
+			return "", nil
+		}
+		parsed, err := strconv.ParseFloat(trimmed, 64)
+		if err != nil {
+			return "", fmt.Errorf("cannot convert string '%s' to float: %w", s, err)
+		}
+		if f.Decimal > 0 {
+			mult := math.Pow(10, float64(f.Decimal))
+			val := int64(math.Round(parsed * mult))
+			return fmt.Sprintf("%d", val), nil
+		}
+		return strconv.FormatFloat(parsed, 'f', -1, 64), nil
+
+	case "date":
+		if trimmed == "" {
+			return "", nil
+		}
+		format := f.Format
+		if format == "" {
+			format = "20060102"
+		}
+		parsed, err := time.Parse(format, trimmed)
+		if err != nil {
+			return "", fmt.Errorf("cannot convert string '%s' to date with format '%s': %w", s, format, err)
+		}
+		return parsed.Format(format), nil
+	}
+
+	return s, nil
 }

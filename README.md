@@ -81,6 +81,10 @@ line, err := dynamic.Marshal(data, layout)
 // Result: "00050ITEM      "
 ```
 
+String inputs are coerced automatically when `Type` is set:
+- `int`/`float`: strings são convertidas; para `Decimal`, valores com ponto são aceitos e arredondados antes de aplicar o padding. Erros trazem a string original e a causa do parse.
+- `date`: converte usando `Format` (ou `20060102` se vazio) e falha com mensagem clara quando o texto não obedece ao formato.
+
 ### Custom Encoding/Decoding
 
 You can implement `MarshalCNAB` and `UnmarshalCNAB` for custom types:
