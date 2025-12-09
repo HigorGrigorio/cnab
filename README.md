@@ -17,19 +17,12 @@ This library provides a flexible engine for parsing and generating fixed-width (
 ## Example
 
 ```go
-// Example:                                                                 |20251208|       
-JOHN|0000010302|000001|
-struct Line 
-{ //                                                                 |        |           |   
-      |
-    Date Date `cnab:"date;format:AAAAMMDD;required"` //  <--------- 
-    -------------|        |           |         |
-    Name string `cnab:"name;required;size:10;align:right;ascii:' '"` // 
-    <-----------------|           |         |
-    Amount float64 `cnab:"decimal:2;required;size:10"` // 
-    <-------------------------------------------|         |
-    Counter int `cnab:"counter;required;size:6;align:right;ascii:'0'"` // 
-    <-------------------------------------|
+// Example:                                                                 |20251208|       JOHN|0000010302|000001|
+struct Line { //                                                                 |        |           |         |
+    Date Date `cnab:"date;format:AAAAMMDD;required"` //  <-----------------------|        |           |         |
+    Name string `cnab:"name;required;size:10;align:right;ascii:' '"` // <-----------------|           |         |
+    Amount float64 `cnab:"decimal:2;required;size:10"` // <-------------------------------------------|         |
+    Counter int `cnab:"counter;required;size:6;align:right;ascii:'0'"` // <-------------------------------------|
 }
 ```
 
