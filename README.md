@@ -65,7 +65,7 @@ err := cnab.Unmarshal([]byte(line), &h)
 You can generate CNAB lines from a map (e.g., parsed from CSV) without defining a struct:
 
 ```go
-import "github.com/higorgrigorio/cnab/dynamic"
+import "github.com/HigorGrigorio/cnab/dynamic"
 
 layout := []dynamic.Field{
     {Name: "ID", Size: 5, Type: "int"}, // Defaults: Fill="0", Align="right"
