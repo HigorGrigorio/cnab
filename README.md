@@ -36,6 +36,8 @@ type Header struct {
     Name   string    `cnab:"size:10;fill: ;align:left"`
     Date   time.Time `cnab:"size:8;format:20060102"`
     Amount float64   `cnab:"size:10;decimal:2;fill:0;align:right"`
+    Type   string    `cnab:"literal:REM;size:3"` // Explicit size
+    Ver    string    `cnab:"literal:040"`        // Autosize to 3
 }
 ```
 
@@ -125,5 +127,11 @@ type MyStruct struct {
 | `align` | Padding direction (`left` or `right`).                     | `left` for strings; `right` for numbers | Works with `fill` to place the value within the field.                                       |
 | `format`| Date format for `time.Time` fields.                        | `20060102`                              | Go time layout.                                                                              |
 | `decimal`| Implied decimal places for numeric fields.                | 0                                       | Value is multiplied/divided by `10^decimal` on marshal/unmarshal.                            |
+| `literal`| Constant value override.                                   | –                                       | Always outputs this value. Used for autosize if `size` is missing.                           |
 
-Positioning rules: if `start` is omitted, the field begins right after the previous one. Overlapping intervals cause an encode error. Negative numbers keep the sign on the left with zero-fill (e.g., `-1` in size 5 becomes `-0001`).
+Positioning rules: 
+- If `start` is omitted, the field begins right after the previous one. 
+- If `size` is omitted but `literal` is present, `size` defaults to `len(literal)`.
+- If `start` is omitted but `end` and `size` (explicit or derived) are present, `start` is calculated as `end - size + 1`.
+- Overlapping intervals cause an encode error. 
+- Negative numbers keep the sign on the left with zero-fill (e.g., `-1` in size 5 becomes `-0001`).
