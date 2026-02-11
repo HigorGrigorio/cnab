@@ -89,15 +89,32 @@ func parseTag(tag string) (fieldTag, error) {
 		}
 	}
 
-	// Derive size if end provided
-	if ft.end > 0 {
-		if ft.start == 0 {
-			return ft, ErrInvalidTag // end requires start
-		}
+	// 1. If size is missing but we have a literal, autosize it.
+	if ft.size == 0 && ft.literalValue != "" {
+		ft.size = len(ft.literalValue)
+	}
+
+	// 2. Derive size from start/end if provided
+	if ft.end > 0 && ft.start > 0 {
 		if ft.end < ft.start {
 			return ft, ErrInvalidTag // invalid interval
 		}
-		ft.size = ft.end - ft.start + 1
+		derivedSize := ft.end - ft.start + 1
+		if ft.size > 0 && ft.size != derivedSize {
+			// specific size conflicts with interval
+			return ft, ErrInvalidTag
+		}
+		ft.size = derivedSize
+	}
+
+	// 3. If we have end and size but no start, derive start
+	if ft.end > 0 && ft.size > 0 && ft.start == 0 {
+		ft.start = ft.end - ft.size + 1
+	}
+
+	// 4. If we have start and size but no end, derive end (optional, but good for completeness)
+	if ft.start > 0 && ft.size > 0 && ft.end == 0 {
+		ft.end = ft.start + ft.size - 1
 	}
 
 	if ft.size <= 0 {
