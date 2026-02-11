@@ -191,7 +191,7 @@ func TestStartEndEncodingDecoding(t *testing.T) {
 		// Start+size interval
 		Name string `cnab:"start:4;size:4;fill: ;align:left"`
 		// Sequential (no start): follows previous end
-		Cnt  int    `cnab:"size:2;fill:0;align:right"`
+		Cnt int `cnab:"size:2;fill:0;align:right"`
 	}
 
 	p := Pos{
@@ -229,5 +229,36 @@ func TestStartEndOverlap(t *testing.T) {
 	_, err := Marshal(b)
 	if err == nil {
 		t.Fatalf("expected overlap error, got nil")
+	}
+}
+
+func TestLiteralValue(t *testing.T) {
+	type LiteralStruct struct {
+		Name     string `cnab:"size:10;literal:FIXED_NAME"`
+		Code     int    `cnab:"size:5;literal:99999"`
+		Override string `cnab:"size:5;literal:OVERR;fill: "`
+		Empty    string `cnab:"size:5;literal:EMPTY"`
+	}
+
+	s := LiteralStruct{
+		Name:     "CHANGEME",
+		Code:     123,
+		Override: "IGNORED",
+		Empty:    "",
+	}
+
+	// Name: FIXED_NAME (10 chars)
+	// Code: 99999 (5 chars)
+	// Override: OVERR (5 chars)
+	// Empty: EMPTY (5 chars)
+	expected := "FIXED_NAME99999OVERREMPTY"
+
+	data, err := Marshal(s)
+	if err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+
+	if string(data) != expected {
+		t.Errorf("Marshal LiteralStruct mismatch:\nGot:  '%s'\nWant: '%s'", string(data), expected)
 	}
 }

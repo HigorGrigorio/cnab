@@ -45,9 +45,17 @@ func encode(v interface{}) ([]byte, error) {
 		}
 
 		val := rv.Field(i)
-		s, err := formatValue(val, tag)
-		if err != nil {
-			return nil, fmt.Errorf("field %s: %w", field.Name, err)
+
+		var s string
+
+		if tag.literalValue != "" {
+			s = tag.literalValue
+		} else {
+			var formatErr error
+			s, formatErr = formatValue(val, tag)
+			if formatErr != nil {
+				return nil, fmt.Errorf("field %s: %w", field.Name, formatErr)
+			}
 		}
 
 		if len(s) > tag.size {
@@ -127,7 +135,7 @@ func formatValue(v reflect.Value, tag fieldTag) (string, error) {
 			return string(b), nil
 		}
 	}
-	
+
 	// Also check if addressable and pointer implements Marshaler
 	// (e.g. func (t *Type) MarshalCNAB...)
 	if v.CanAddr() {

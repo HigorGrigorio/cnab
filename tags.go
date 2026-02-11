@@ -6,14 +6,15 @@ import (
 )
 
 type fieldTag struct {
-	start   int
-	end     int
-	size    int
-	fill    rune
-	align   string // "left" or "right"
-	format  string
-	decimal int
-	hasDate bool
+	start        int
+	end          int
+	size         int
+	fill         rune
+	align        string // "left" or "right"
+	format       string
+	decimal      int
+	hasDate      bool
+	literalValue string
 }
 
 func parseTag(tag string) (fieldTag, error) {
@@ -80,6 +81,8 @@ func parseTag(tag string) (fieldTag, error) {
 			ft.decimal = v
 		case "cnab":
 			// ignore, just the tag name itself if passed incorrectly
+		case "literal":
+			ft.literalValue = value
 		default:
 			// ignore unknown keys or handle as error?
 			// For now, ignore to be flexible
