@@ -94,7 +94,7 @@ func parseTag(tag string) (fieldTag, error) {
 	
 	if ft.end != 0 {
 		if ft.start == 0 {
-			return ft, ErrInvalidTag
+			return ft, errors.Wrap(ErrInvalidTag, "start is mandatory when end is set")
 		}
 
 		if ft.start > ft.end {
