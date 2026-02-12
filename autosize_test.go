@@ -25,10 +25,30 @@ func TestAutosizeWithoutEnd(t *testing.T) {
 	}
 }
 
+func TestAutoSizeWithSize(t *testing.T) {
+	type PredefiniedSize struct {
+		Prefix string `cnab:"literal:PRE"`
+		Data   string `cnab:"size:5;literal:H;align:left"`
+		Suffix string `cnab:"literal:SUF"`
+	}
+
+	s := PredefiniedSize{}
+	expected := "PREH    SUF"
+
+	data, err := Marshal(s)
+	if err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+
+	if string(data) != expected {
+		t.Errorf("Expected '%s', got '%s'", expected, string(data))
+	}
+}
+
 func TestAutosizeWithEnd(t *testing.T) {
 	type AutoEndStruct struct {
 		// End: 5. Literal: HELLO (5 chars). Start should be 1.
-		Field1 string `cnab:"end:5;literal:HELLO"`
+		Field1 string `cnab:"start:1;literal:HELLO"`
 	}
 
 	s := AutoEndStruct{}

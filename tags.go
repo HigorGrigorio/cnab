@@ -1,8 +1,11 @@
 package cnab
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type fieldTag struct {
@@ -88,37 +91,42 @@ func parseTag(tag string) (fieldTag, error) {
 			// For now, ignore to be flexible
 		}
 	}
-
-	// 1. If size is missing but we have a literal, autosize it.
-	if ft.size == 0 && ft.literalValue != "" {
-		ft.size = len(ft.literalValue)
-	}
-
-	// 2. Derive size from start/end if provided
-	if ft.end > 0 && ft.start > 0 {
-		if ft.end < ft.start {
-			return ft, ErrInvalidTag // invalid interval
-		}
-		derivedSize := ft.end - ft.start + 1
-		if ft.size > 0 && ft.size != derivedSize {
-			// specific size conflicts with interval
+	
+	if ft.end != 0 {
+		if ft.start == 0 {
 			return ft, ErrInvalidTag
 		}
-		ft.size = derivedSize
-	}
 
-	// 3. If we have end and size but no start, derive start
-	if ft.end > 0 && ft.size > 0 && ft.start == 0 {
-		ft.start = ft.end - ft.size + 1
-	}
+		if ft.start > ft.end {
+			return ft, errors.Wrap(ErrInvalidTag, fmt.Sprintf("start %d must be less than end %d", ft.start, ft.end))
+		}
+		
+		// if size is set, it must match the interval
+		if ft.size != 0 && ft.size != ft.end-ft.start+1 {
+			return ft, errors.Wrap(ErrInvalidTag, fmt.Sprintf("size %d does not match interval %d-%d", ft.size, ft.start, ft.end))
+		}
+		
+		ft.size = ft.end - ft.start + 1
+	} else {
+		// auto size
+		if ft.size == 0 {
+			if ft.start == 0 {
+				// for literal, size is the length of the literal
+				if ft.literalValue != "" {
+					ft.size = len(ft.literalValue)
+				} else if ft.format != "" {
+					ft.size = len(ft.format)
+				}
+			} else {
+				// in this case has start and size
+				ft.end = ft.start + len(ft.literalValue) - 1
+				ft.size = ft.end - ft.start + 1
+			}
 
-	// 4. If we have start and size but no end, derive end (optional, but good for completeness)
-	if ft.start > 0 && ft.size > 0 && ft.end == 0 {
-		ft.end = ft.start + ft.size - 1
-	}
-
-	if ft.size <= 0 {
-		return ft, ErrInvalidTag // Size is mandatory (either explicit or derived)
+			if ft.size == 0 {
+				return ft, errors.Wrap(ErrInvalidTag, "size is mandatory when end is set")
+			}
+		}
 	}
 
 	return ft, nil
